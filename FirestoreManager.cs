@@ -11,56 +11,21 @@ public class FirestoreManager : MonoBehaviour
 {
     public static FirestoreManager _instance;
     FirebaseFirestore db;
-    public Dictionary<string, object> data;
     public Action onDataGet, onDataSave;
     public string collectionName = "MatchLogs";
     public string documentId = "Sample Document";
     private void Awake()
     {
-        if (_instance != null)
+        if (_instance != null )
         {
             Destroy(gameObject);
             return;
         }
-
-        DontDestroyOnLoad(this);
         _instance = this;
-        data = new();
     }
-    private void Start()
+    public void Initialize()
     {
-        InitializeFirestore();
-    }
-    public async void InitializeFirestore()
-    {
-        //Firebase.AppOptions options = new Firebase.AppOptions();
-        //options.ApiKey = "";
-        //options.AppId = "";
-        //options.ProjectId = "";
-        //var app = Firebase.FirebaseApp.Create(options);
-
-        //loginManager.message.text = "called";
-        await Firebase.FirebaseApp.CheckAndFixDependenciesAsync().ContinueWithOnMainThread((task =>
-        {
-
-            Firebase.DependencyStatus dependencyStatus = task.Result;
-            if (dependencyStatus == Firebase.DependencyStatus.Available)
-            {
-
-
-
-                db = FirebaseFirestore.DefaultInstance;
-                _ = GetData(() => { onDataGet?.Invoke(); }, collectionName, documentId);
-
-            }
-            else
-            {
-
-                UnityEngine.Debug.LogError(System.String.Format(
-                  "Could not resolve all Firebase dependencies: {0}", dependencyStatus));
-            }
-        }));
-
+        db = FirebaseFirestore.DefaultInstance;
     }
     public async Task<Dictionary<string, object>> GetData(Action continuation, string collectionName, string documentId)
     {
@@ -74,11 +39,6 @@ public class FirestoreManager : MonoBehaviour
             if (snapshot.Exists)
             {
                 data = snapshot.ToDictionary();
-                foreach (var item in data)
-                {
-                    Debug.LogError(item.Key);
-                    Debug.LogError(item.Value);
-                }
                 continuation();
             }
             else
@@ -139,7 +99,47 @@ public class FirestoreManager : MonoBehaviour
     [ContextMenu("save")]
     public void Save()
     {
-        _ = SaveData(collectionName, documentId, "s1s", "214124", null);
+        _ = SaveData(collectionName, new Dictionary<string, object>()
+        {
+
+            { "players",3},
+            { "time",4},
+            { "winner","stg"}
+
+        }, null);
+    }
+    public async Task<bool> SaveData(string collectionName, Dictionary<string, object> data, Action continuation)
+    {
+
+        Assert.IsNotNull(data);
+        data.Add("Time Stamp", DateTime.Now);
+        DocumentReference docRef = db.Collection(collectionName).Document(Mathf.Abs(data.GetHashCode()).ToString());
+        await docRef.SetAsync(data).ContinueWithOnMainThread(task =>
+        {
+            if (task.IsCompletedSuccessfully)
+            {
+                continuation?.Invoke();
+            }
+            return task.IsCompletedSuccessfully;
+        }
+);
+        return false;
+    }
+    public async Task<bool> SaveData(string collectionName, string documentId, Dictionary<string, object> data, Action continuation)
+    {
+
+        Assert.IsNotNull(data);
+        DocumentReference docRef = db.Collection(collectionName).Document(documentId);
+        await docRef.SetAsync(data).ContinueWithOnMainThread(task =>
+        {
+            if (task.IsCompletedSuccessfully)
+            {
+                continuation?.Invoke();
+            }
+            return task.IsCompletedSuccessfully;
+        }
+);
+        return false;
     }
     public async Task<bool> SaveData(string collectionName, string documentId, string key, string value, Action continuation)
     {
@@ -157,8 +157,6 @@ public class FirestoreManager : MonoBehaviour
         {
             if (task.IsCompletedSuccessfully)
             {
-
-                Debug.LogError("Added data .");
                 continuation?.Invoke();
             }
             return task.IsCompletedSuccessfully;
