@@ -10,18 +10,18 @@ using System.Threading.Tasks;
 public class FirestoreManager : MonoBehaviour
 {
     public static FirestoreManager _instance;
-    FirebaseFirestore db;
+    internal FirebaseFirestore db;
     public Action onDataGet, onDataSave;
-    public string collectionName = "MatchLogs";
-    public string documentId = "Sample Document";
+   
     private void Awake()
     {
-        if (_instance != null )
+        if (_instance != null)
         {
             Destroy(gameObject);
             return;
         }
         _instance = this;
+        DontDestroyOnLoad(this);
     }
     public void Initialize()
     {
@@ -39,7 +39,7 @@ public class FirestoreManager : MonoBehaviour
             if (snapshot.Exists)
             {
                 data = snapshot.ToDictionary();
-                continuation();
+                continuation?.Invoke();
             }
             else
             {
@@ -90,24 +90,44 @@ public class FirestoreManager : MonoBehaviour
         if (!data.ContainsKey(key)) return null;
         return data[key];
     }
-    [ContextMenu("Get Data")]
-    public async void GetData()
+    public object ListenData(Action<object> continuation, string collectionName, string documentId, string key)
     {
-        _ = GetData(() => { }, collectionName);
-    }
-
-    [ContextMenu("save")]
-    public void Save()
-    {
-        _ = SaveData(collectionName, new Dictionary<string, object>()
+        object data = null;
+        db.Collection(collectionName).Document(documentId).Listen(x =>
         {
-
-            { "players",3},
-            { "time",4},
-            { "winner","stg"}
-
-        }, null);
+            var dict = x.ToDictionary();
+            if (dict.ContainsKey(key))
+            {
+                data = dict[key];
+                continuation(data);
+            }
+        });
+        return data;
     }
+    public async Task<string> GetDocumentId(Action continuation, string collectionName, string key, string value)
+    {
+        string docId = string.Empty;
+        var querry = db.Collection(collectionName).Where(filter: Filter.EqualTo(key, value));
+        var res = await querry.GetSnapshotAsync().ContinueWithOnMainThread(task =>
+                {
+                    QuerySnapshot capitalQuerySnapshot = task.Result;
+                    if (capitalQuerySnapshot.Documents.ToList().Count > 0) docId = capitalQuerySnapshot.Documents.ToList()[0].Id;
+                    return docId;
+                    //foreach (DocumentSnapshot documentSnapshot in capitalQuerySnapshot.Documents)
+                    //{
+                    //    Debug.Log(String.Format("Document data for {0} document:", documentSnapshot.Id));
+                    //    Dictionary<string, object> city = documentSnapshot.ToDictionary();
+                    //    foreach (KeyValuePair<string, object> pair in city)
+                    //    {
+                    //        Debug.Log(String.Format("{0}: {1}", pair.Key, pair.Value));
+                    //    }
+
+                    //
+                }
+                );
+        return docId;
+    }
+  
     public async Task<bool> SaveData(string collectionName, Dictionary<string, object> data, Action continuation)
     {
 
@@ -164,6 +184,7 @@ public class FirestoreManager : MonoBehaviour
 );
         return false;
     }
+
 
 
 }

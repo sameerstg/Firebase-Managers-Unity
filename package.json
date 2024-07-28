@@ -1,0 +1,13 @@
+{
+	"name":"com.sameerstg.firebase-managers-unity",
+	"version":"1.0.0",
+	"displayName":"Firebase-Managers",
+	"description":"Package to which helps you to implement firebase in unity",
+	"unity":"2018.1",
+	"author":{
+		"name":"Sameer Ahmed",
+		"email":"sameerstg@outlook.com",
+		"url":"www.sameerstg.com"
+	}
+
+}

@@ -89,21 +89,7 @@ public class RealtimeDatabaseManager : MonoBehaviour
     {
         reference.RemoveValueAsync();
     }
-    [ContextMenu("Save Data")]
-    public void SaveData()
-    {
-        _ = SaveData(reference.Child("Games").Child("stg"), 241);
-    }
-    [ContextMenu("Get Data")]
-    public void GetData()
-    {
-        _ = GetData(reference.Child("UserData").Child("afasfas"));
-    }
-    [ContextMenu("Delete Data")]
-    public void DeleteData()
-    {
-        DeleteData(reference.Child("Games").Child("stg"));
-    }
+   
 
 
 
