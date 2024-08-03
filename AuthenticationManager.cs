@@ -116,7 +116,6 @@ public class AuthenticationManager : MonoBehaviour
 
             Debug.LogFormat("{0} You Are Successfully Logged In", user.DisplayName);
             AuthHandler._instance.loginError.text = "<color=white>" + user.DisplayName + "You Are Successfully Logged In" + "</color>";
-            GameManager._instance.SetUserName(user.DisplayName);
         }
     }
 
@@ -174,7 +173,7 @@ public class AuthenticationManager : MonoBehaviour
                 }
 
                 Debug.Log(failedMessage);
-                AuthHandler._instance.loginError.text = "<color=red>" + failedMessage + "</color>";
+                AuthHandler._instance.registerError.text = "<color=red>" + failedMessage + "</color>";
             }
             else
             {
@@ -226,7 +225,6 @@ public class AuthenticationManager : MonoBehaviour
                 {
                     Debug.Log("Registration Sucessful Welcome " + user.DisplayName);
                     AuthHandler._instance.loginError.text = "<color=red>" + "Registration Sucessful Welcome " + user.DisplayName + "</color>";
-                    GameManager._instance.SetUserName(name);
                     //_ = FirestoreManager._instance.SaveData("Users", user.UserId, "username", user.DisplayName, () =>
                     yield return FirestoreManager._instance.SaveData("Userdata", user.UserId, new() { { "username", user.DisplayName } }, () =>
  {

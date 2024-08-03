@@ -12,14 +12,16 @@ public class AuthHandler : MonoBehaviour
     [Header("Login")]
     public TMP_InputField emailLoginField;
     public TMP_InputField passwordLoginField;
+    public TMP_Text loginError;
 
 
 
+    [Header("Register")]
     public TMP_InputField nameRegisterField;
     public TMP_InputField emailRegisterField;
     public TMP_InputField passwordRegisterField;
     public TMP_InputField confirmPasswordRegisterField;
-    public TMP_Text loginError;
+    public TMP_Text registerError;
     public void Login()
     {
         AuthenticationManager._instance.Login(emailLoginField.text, passwordLoginField.text);
